@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief Cashier - v3.2.1 (Stable)</title>
+    <title>Relief Cashier - v3.2.2 (Stable)</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #eceff1; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .app-box { width: 100%; max-width: 500px; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -156,9 +156,7 @@
     const today = new Date().toISOString().split('T')[0];
     
     function init() {
-        ['date-op','date-in','date-ex','exp-start','exp-end'].forEach(id => {
-            if(document.getElementById(id)) document.getElementById(id).value = today;
-        });
+        ['date-op','date-in','date-ex','exp-start','exp-end'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = today; });
         notes.forEach(n => tempWallet[n] = wallet[n]);
         buildInputs(); buildReportTable(); updateUI(); renderHistory(); checkOpLock();
     }
@@ -172,15 +170,12 @@
 
     function buildReportTable() {
         let h = '';
-        notes.forEach(n => {
-            h += `<tr><td>${n}</td><td><input type="number" id="adj-input-${n}" value="${tempWallet[n]}" oninput="trackAdjustment(${n}, this.value)"></td><td id="adj-total-${n}">${(n * tempWallet[n]).toLocaleString()}</td></tr>`;
-        });
+        notes.forEach(n => { h += `<tr><td>${n}</td><td><input type="number" id="adj-input-${n}" value="${tempWallet[n]}" oninput="trackAdjustment(${n}, this.value)"></td><td id="adj-total-${n}">${(n * tempWallet[n]).toLocaleString()}</td></tr>`; });
         document.getElementById('report-body').innerHTML = h;
     }
 
     function calcLive(prefix) {
-        let total = 0;
-        notes.forEach(n => total += (n * (parseInt(document.getElementById(`${prefix}-${n}`).value) || 0)));
+        let total = 0; notes.forEach(n => total += (n * (parseInt(document.getElementById(`${prefix}-${n}`).value) || 0)));
         document.getElementById(`count-${prefix}`).innerText = total.toLocaleString();
     }
 
@@ -189,14 +184,14 @@
         let physicalBal = 0;
         notes.forEach(n => {
             let count = tempWallet[n]; physicalBal += (n * count);
-            const totalCell = document.getElementById(`adj-total-${n}`); if(totalCell) totalCell.innerText = (n * count).toLocaleString();
-            const inputField = document.getElementById(`adj-input-${n}`); if(inputField && document.activeElement !== inputField) inputField.value = count;
+            if(document.getElementById(`adj-total-${n}`)) document.getElementById(`adj-total-${n}`).innerText = (n * count).toLocaleString();
+            let inp = document.getElementById(`adj-input-${n}`); if(inp && document.activeElement !== inp) inp.value = count;
         });
         document.getElementById('disp-total').innerText = physicalBal.toLocaleString() + ' ৳';
         const diff = logicalBal - physicalBal;
-        const msg = document.getElementById('diff-msg'); const header = document.getElementById('main-header'); const saveBtn = document.getElementById('btn-save-adj');
-        if(Math.abs(diff) > 0.1) { header.classList.add('mismatch'); msg.innerText = `পার্থক্য: ${diff.toLocaleString()} ৳ (নোট মেলান)`; msg.style.display = 'block'; if(saveBtn) saveBtn.disabled = true; } 
-        else { header.classList.remove('mismatch'); msg.style.display = 'none'; if(saveBtn) saveBtn.disabled = false; }
+        const msg = document.getElementById('diff-msg'); const header = document.getElementById('main-header');
+        if(Math.abs(diff) > 0.1) { header.classList.add('mismatch'); msg.innerText = `পার্থক্য: ${diff.toLocaleString()} ৳ (নোট মেলান)`; msg.style.display = 'block'; } 
+        else { header.classList.remove('mismatch'); msg.style.display = 'none'; }
         localStorage.setItem('cash_v22_wallet', JSON.stringify(wallet)); localStorage.setItem('cash_v22_history', JSON.stringify(history));
     }
 
@@ -204,8 +199,7 @@
     function saveAdjustment() { notes.forEach(n => wallet[n] = tempWallet[n]); updateUI(); alert("সমন্বয় সেভ হয়েছে!"); }
     
     function confirmAndSave(type) {
-        let total = 0; let nts = {};
-        let prefix = (type === 'opening') ? 'op' : (type === 'income' ? 'in' : 'ex');
+        let total = 0; let nts = {}; let prefix = (type === 'opening') ? 'op' : (type === 'income' ? 'in' : 'ex');
         let date = document.getElementById(`date-${prefix}`).value;
         let desc = document.getElementById(`desc-${prefix === 'op' ? 'op' : (prefix === 'in' ? 'in' : 'ex')}`).value || (type === 'expense' ? 'খরচ' : 'লেনদেন');
         notes.forEach(n => { let v = parseInt(document.getElementById(`${prefix}-${n}`).value) || 0; total += (n * v); nts[n] = v; });
@@ -214,25 +208,21 @@
         else { notes.forEach(n => type === 'income' ? wallet[n] += nts[n] : wallet[n] -= nts[n]); notes.forEach(n => document.getElementById(`${prefix}-${n}`).value = ''); document.getElementById(`count-${prefix}`).innerText = '০'; }
         notes.forEach(n => tempWallet[n] = wallet[n]);
         history.unshift({ id: Date.now(), date, type, desc, amount: total, denominations: nts });
-        updateUI(); renderHistory(); checkOpLock(); alert("সফলভাবে সংরক্ষিত!");
+        updateUI(); renderHistory(); checkOpLock(); alert("সংরক্ষিত!");
     }
 
     function checkOpLock() {
         const btn = document.getElementById('btn-save-op'); const badge = document.getElementById('op-lock-msg'); const unlock = document.getElementById('op-unlock-area'); const inputs = document.querySelectorAll('#page-1 input');
-        if(isOpLocked) {
-            inputs.forEach(i => i.disabled = true); btn.disabled = true; badge.style.display = 'block'; unlock.style.display = 'block';
+        if(isOpLocked) { inputs.forEach(i => i.disabled = true); btn.disabled = true; badge.style.display = 'block'; unlock.style.display = 'block';
             let opItem = history.find(i => i.type === 'opening');
-            if(opItem) {
-                document.getElementById('date-op').value = opItem.date; document.getElementById('desc-op').value = opItem.desc;
-                notes.forEach(n => document.getElementById(`op-${n}`).value = opItem.denominations[n] || 0); document.getElementById('count-op').innerText = opItem.amount.toLocaleString();
-            }
+            if(opItem) { document.getElementById('date-op').value = opItem.date; document.getElementById('desc-op').value = opItem.desc; notes.forEach(n => document.getElementById(`op-${n}`).value = opItem.denominations[n] || 0); document.getElementById('count-op').innerText = opItem.amount.toLocaleString(); }
         } else { inputs.forEach(i => i.disabled = false); btn.disabled = false; badge.style.display = 'none'; unlock.style.display = 'none'; }
     }
     
     function unlockOpening() { if(confirm("ওপেনিং ব্যালেন্স পরিবর্তন করতে চান?")) { isOpLocked = false; localStorage.setItem('cash_v22_opLocked', false); checkOpLock(); } }
+    
     function renderHistory() {
-        let h = '';
-        history.forEach(i => {
+        let h = ''; history.forEach(i => {
             let clr = i.type === 'expense' ? 'red' : 'green';
             h += `<div class="history-item"><span class="history-date">${i.date} [${i.type}]</span><span class="history-amt" style="color:${clr}">${(i.type==='expense'?'-':'+') + i.amount.toLocaleString()} ৳</span><div style="font-size:12px; color:#555;">${i.desc}</div><div class="edit-tools"><span style="color:#303f9f; cursor:pointer; text-decoration:underline; font-size:12px;" onclick="openEditModal(${i.id})">এডিট</span> <span style="color:#c62828; cursor:pointer; text-decoration:underline; font-size:12px; margin-left:15px;" onclick="deleteHistory(${i.id})">ডিলিট</span></div></div>`;
         });
@@ -242,29 +232,24 @@
     function exportToExcelRange() {
         let start = document.getElementById('exp-start').value;
         let end = document.getElementById('exp-end').value;
-        
-        // Priority Logic: opening=1, income=2, expense=3
         const pMap = { 'opening': 1, 'income': 2, 'expense': 3 };
         
         let sorted = [...history].sort((a,b) => {
             if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
-            return pMap[a.type] - pMap[b.type]; // Sort by Type Priority
+            if (pMap[a.type] !== pMap[b.type]) return pMap[a.type] - pMap[b.type];
+            return a.id - b.id; // Correct order: oldest first
         });
 
         let csv = "\ufeffতারিখ,বিবরণ,জমা,খরচ,স্থিতি\n";
         let bal = 0, bf = 0; let filtered = [];
-        
         sorted.forEach(i => { 
             let amt = (i.type === 'expense' ? -i.amount : i.amount); 
-            if (i.date < start) bf += amt; 
-            else if (i.date >= start && i.date <= end) filtered.push(i); 
+            if (i.date < start) bf += amt; else if (i.date >= start && i.date <= end) filtered.push(i); 
         });
 
         bal = bf; csv += `${start},Bring Forward (B/F),${bf >= 0 ? bf : 0},${bf < 0 ? Math.abs(bf) : 0},${bal}\n`;
-        
         filtered.forEach(i => { 
-            let inc = i.type !== 'expense' ? i.amount : 0; 
-            let exp = i.type === 'expense' ? i.amount : 0; 
+            let inc = i.type !== 'expense' ? i.amount : 0; let exp = i.type === 'expense' ? i.amount : 0; 
             bal += (inc - exp); csv += `${i.date},${i.desc},${inc},${exp},${bal}\n`; 
         });
 
