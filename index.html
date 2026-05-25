@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief Cashier - v3.2.3 (Stable)</title>
+    <title>Relief Cashier - v3.2.4 (Offline)</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #eceff1; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .app-box { width: 100%; max-width: 500px; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -189,7 +191,7 @@
         });
         
         document.getElementById('disp-total').innerText = physicalBal.toLocaleString() + ' ৳';
-        const diff = Math.round((logicalBal - physicalBal) * 100) / 100; // Floating point fix
+        const diff = Math.round((logicalBal - physicalBal) * 100) / 100;
         const msg = document.getElementById('diff-msg'); 
         const header = document.getElementById('main-header');
         const saveAdjBtn = document.getElementById('btn-save-adj');
@@ -198,12 +200,12 @@
             header.classList.add('mismatch'); 
             msg.innerText = `পার্থক্য: ${diff.toLocaleString()} ৳ (নোট মেলান)`; 
             msg.style.display = 'block'; 
-            if(saveAdjBtn) saveAdjBtn.disabled = true; // FIX: Lock button when mismatch
+            if(saveAdjBtn) saveAdjBtn.disabled = true;
         } 
         else { 
             header.classList.remove('mismatch'); 
             msg.style.display = 'none'; 
-            if(saveAdjBtn) saveAdjBtn.disabled = false; // FIX: Enable button when balanced
+            if(saveAdjBtn) saveAdjBtn.disabled = false;
         }
         
         localStorage.setItem('cash_v22_wallet', JSON.stringify(wallet)); 
@@ -263,7 +265,7 @@
             if (pMap[a.type] !== pMap[b.type]) return pMap[a.type] - pMap[b.type];
             return a.id - b.id; 
         });
-        let csv = "\ufeffতারিখ,বিবরণ,জমা,খরচ,স্থিতি\n";
+        let csv = "\ufeffতারিখ,বিবরণ,জما,খরচ,স্থিতি\n";
         let bal = 0, bf = 0; let filtered = [];
         sorted.forEach(i => { let amt = (i.type === 'expense' ? -i.amount : i.amount); if (i.date < start) bf += amt; else if (i.date >= start && i.date <= end) filtered.push(i); });
         bal = bf; csv += `${start},Bring Forward (B/F),${bf >= 0 ? bf : 0},${bf < 0 ? Math.abs(bf) : 0},${bal}\n`;
@@ -300,7 +302,23 @@
     function exportBackup() { let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({wallet, history, isOpLocked})])); a.download = 'Relief_Cashier_Backup.json'; a.click(); }
     function importBackup(e) { let r = new FileReader(); r.onload = (ev) => { try { let d = JSON.parse(ev.target.result); wallet=d.wallet; history=d.history; isOpLocked=d.isOpLocked||false; localStorage.setItem('cash_v22_opLocked', isOpLocked); updateUI(); renderHistory(); location.reload(); } catch(err) { alert("ভুল ফাইল!"); } }; r.readAsText(e.target.files[0]); }
     function doubleConfirmReset() { if(confirm("সব মুছবেন?") && confirm("নিশ্চিত?")) { localStorage.clear(); location.reload(); } }
+    
     init();
+
+    // --- AUTOMATIC OFFLINE SERVICE WORKER ---
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            const CACHE_NAME = 'relief-cashier-v3.2.4';
+            self.addEventListener('install', e => {
+                e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll([location.href])));
+            });
+            self.addEventListener('fetch', e => {
+                e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+            });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log(err));
+    }
 </script>
 </body>
 </html>
