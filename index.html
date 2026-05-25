@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief Cashier - v3.2.4 (Offline)</title>
+    <title>Relief Cashier - v3.2.5 (PWA)</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
@@ -12,45 +12,33 @@
         .header { background: #1a237e; color: white; padding: 20px; text-align: center; }
         .header.mismatch { background: #c62828; }
         .balance-box { font-size: 28px; font-weight: bold; margin-top: 5px; color: #ffeb3b; }
-        
         input[type="radio"] { display: none; }
         .nav-tabs { display: flex; background: #303f9f; }
         .nav-tabs label { flex: 1; padding: 15px 5px; text-align: center; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: bold; font-size: 13px; }
-        
         #tab1:checked ~ .nav-tabs label[for="tab1"], #tab2:checked ~ .nav-tabs label[for="tab2"], 
         #tab3:checked ~ .nav-tabs label[for="tab3"], #tab4:checked ~ .nav-tabs label[for="tab4"], 
         #tab5:checked ~ .nav-tabs label[for="tab5"] { color: white; border-bottom: 4px solid #ffeb3b; background: rgba(255,255,255,0.1); }
-
         .page { display: none; padding: 15px; min-height: 400px; max-height: 85vh; overflow-y: auto; }
         #tab1:checked ~ .content #page-1, #tab2:checked ~ .content #page-2, 
         #tab3:checked ~ .content #page-3, #tab4:checked ~ .content #page-4, 
         #tab5:checked ~ .content #page-5 { display: block; }
-
         .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; background: #f5f5f5; padding: 8px; border-radius: 8px; }
-        
-        input.note-input, input[type="number"], input[type="date"], .desc-input { 
-            width: 140px; padding: 8px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none;
-        }
+        input.note-input, input[type="number"], input[type="date"], .desc-input { width: 140px; padding: 8px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none; }
         input:focus { border-color: #303f9f; box-shadow: 0 0 5px rgba(48,63,159,0.2); }
         input:disabled { background: #e0e0e0; cursor: not-allowed; color: #757575; }
-        
         .live-counter { background: #fff9c4; padding: 10px; text-align: center; font-weight: bold; color: #333; border: 1px dashed #fbc02d; border-radius: 8px; margin-top: 10px; font-size: 16px; }
         .action-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .action-btn:disabled { background: #bdc3c7 !important; cursor: not-allowed; opacity: 0.6; }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         table input { width: 70px !important; padding: 6px !important; border-radius: 6px !important; text-align: center; }
-
         .history-item { border-bottom: 1px dashed #ccc; padding: 12px 0; }
         .history-date { font-weight: bold; color: #1a237e; font-size: 12px; }
         .history-amt { float: right; font-weight: bold; font-size: 16px; }
-        
         .range-box { margin-top: 15px; padding: 10px; border: 1px solid #303f9f; border-radius: 8px; background: #e8eaf6; }
         .range-inputs { display: flex; gap: 8px; justify-content: space-between; }
         .range-inputs > div { flex: 1; min-width: 0; }
         .range-inputs input[type="date"] { width: 100%; box-sizing: border-box; padding: 6px; font-size: 12px; border-radius: 6px; }
-
         #edit-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:100; justify-content:center; align-items:center; }
         .modal-content { background:white; padding:20px; border-radius:10px; width:90%; max-width:400px; max-height:80vh; overflow-y:auto; }
         .lock-badge { display: none; background: #e8f5e9; color: #2e7d32; padding: 5px; border-radius: 5px; font-size: 12px; margin-bottom: 10px; text-align: center; border: 1px solid #2e7d32; }
@@ -124,7 +112,6 @@
                 <tbody id="report-body"></tbody>
             </table>
             <button class="action-btn" id="btn-save-adj" style="background:#2c3e50;" onclick="saveAdjustment()">সমন্বয় সেভ করুন</button>
-            
             <div class="range-box">
                 <div class="range-inputs">
                     <div><label style="font-size:11px;">শুরু:</label><input type="date" id="exp-start"></div>
@@ -132,7 +119,6 @@
                 </div>
                 <button class="action-btn" style="background:#7f8c8d; font-size:14px;" onclick="exportToExcelRange()">Excel (CSV) ডাউনলোড</button>
             </div>
-            
             <div style="margin-top:20px; display:flex; justify-content:space-between;">
                 <button onclick="exportBackup()" style="flex:1; margin-right:5px; padding:10px; cursor:pointer;">Export JSON</button>
                 <button onclick="document.getElementById('importFile').click()" style="flex:1; padding:10px; cursor:pointer;">Import JSON</button>
@@ -153,7 +139,6 @@
     let history = JSON.parse(localStorage.getItem('cash_v22_history')) || [];
     let isOpLocked = JSON.parse(localStorage.getItem('cash_v22_opLocked')) || false;
     let tempWallet = {}; 
-
     if (Object.keys(wallet).length === 0) notes.forEach(n => wallet[n] = 0);
     const today = new Date().toISOString().split('T')[0];
     
@@ -162,25 +147,21 @@
         notes.forEach(n => tempWallet[n] = wallet[n]);
         buildInputs(); buildReportTable(); updateUI(); renderHistory(); checkOpLock();
     }
-
     function buildInputs() {
         ['op','in','ex'].forEach(p => {
             let h = ''; notes.forEach(n => h += `<div class="row"><span>${n} ৳</span><input type="number" step="any" class="note-input" id="${p}-${n}" oninput="calcLive('${p}')" placeholder="0"></div>`);
             document.getElementById(`list-${p === 'op' ? 'opening' : (p === 'in' ? 'income' : 'expense')}`).innerHTML = h;
         });
     }
-
     function buildReportTable() {
         let h = '';
         notes.forEach(n => { h += `<tr><td>${n}</td><td><input type="number" id="adj-input-${n}" value="${tempWallet[n]}" oninput="trackAdjustment(${n}, this.value)"></td><td id="adj-total-${n}">${(n * tempWallet[n]).toLocaleString()}</td></tr>`; });
         document.getElementById('report-body').innerHTML = h;
     }
-
     function calcLive(prefix) {
         let total = 0; notes.forEach(n => total += (n * (parseInt(document.getElementById(`${prefix}-${n}`).value) || 0)));
         document.getElementById(`count-${prefix}`).innerText = total.toLocaleString();
     }
-
     function updateUI() {
         let logicalBal = history.reduce((acc, i) => (i.type === 'expense' ? acc - i.amount : acc + i.amount), 0);
         let physicalBal = 0;
@@ -189,55 +170,27 @@
             if(document.getElementById(`adj-total-${n}`)) document.getElementById(`adj-total-${n}`).innerText = (n * count).toLocaleString();
             let inp = document.getElementById(`adj-input-${n}`); if(inp && document.activeElement !== inp) inp.value = count;
         });
-        
         document.getElementById('disp-total').innerText = physicalBal.toLocaleString() + ' ৳';
         const diff = Math.round((logicalBal - physicalBal) * 100) / 100;
-        const msg = document.getElementById('diff-msg'); 
-        const header = document.getElementById('main-header');
-        const saveAdjBtn = document.getElementById('btn-save-adj');
-
-        if(Math.abs(diff) > 0.01) { 
-            header.classList.add('mismatch'); 
-            msg.innerText = `পার্থক্য: ${diff.toLocaleString()} ৳ (নোট মেলান)`; 
-            msg.style.display = 'block'; 
-            if(saveAdjBtn) saveAdjBtn.disabled = true;
-        } 
-        else { 
-            header.classList.remove('mismatch'); 
-            msg.style.display = 'none'; 
-            if(saveAdjBtn) saveAdjBtn.disabled = false;
-        }
-        
-        localStorage.setItem('cash_v22_wallet', JSON.stringify(wallet)); 
-        localStorage.setItem('cash_v22_history', JSON.stringify(history));
+        const msg = document.getElementById('diff-msg'); const header = document.getElementById('main-header'); const saveAdjBtn = document.getElementById('btn-save-adj');
+        if(Math.abs(diff) > 0.01) { header.classList.add('mismatch'); msg.innerText = `পার্থক্য: ${diff.toLocaleString()} ৳ (নোট মেলান)`; msg.style.display = 'block'; if(saveAdjBtn) saveAdjBtn.disabled = true; } 
+        else { header.classList.remove('mismatch'); msg.style.display = 'none'; if(saveAdjBtn) saveAdjBtn.disabled = false; }
+        localStorage.setItem('cash_v22_wallet', JSON.stringify(wallet)); localStorage.setItem('cash_v22_history', JSON.stringify(history));
     }
-
     function trackAdjustment(n, v) { tempWallet[n] = parseInt(v) || 0; updateUI(); }
     function saveAdjustment() { notes.forEach(n => wallet[n] = tempWallet[n]); updateUI(); alert("সমন্বয় সেভ হয়েছে!"); }
-    
     function confirmAndSave(type) {
         let total = 0; let nts = {}; let prefix = (type === 'opening') ? 'op' : (type === 'income' ? 'in' : 'ex');
         let date = document.getElementById(`date-${prefix}`).value;
         let desc = document.getElementById(`desc-${prefix === 'op' ? 'op' : (prefix === 'in' ? 'in' : 'ex')}`).value || (type === 'expense' ? 'খরচ' : 'লেনদেন');
         notes.forEach(n => { let v = parseInt(document.getElementById(`${prefix}-${n}`).value) || 0; total += (n * v); nts[n] = v; });
         if(total === 0) return alert("পরিমাণ লিখুন!");
-        
-        if(type === 'opening') { 
-            history = history.filter(i => i.type !== 'opening'); 
-            notes.forEach(n => wallet[n] = nts[n]); 
-            isOpLocked = true; 
-            localStorage.setItem('cash_v22_opLocked', true); 
-        } else { 
-            notes.forEach(n => type === 'income' ? wallet[n] += nts[n] : wallet[n] -= nts[n]); 
-            notes.forEach(n => document.getElementById(`${prefix}-${n}`).value = ''); 
-            document.getElementById(`count-${prefix}`).innerText = '০';
-        }
-        
+        if(type === 'opening') { history = history.filter(i => i.type !== 'opening'); notes.forEach(n => wallet[n] = nts[n]); isOpLocked = true; localStorage.setItem('cash_v22_opLocked', true); } 
+        else { notes.forEach(n => type === 'income' ? wallet[n] += nts[n] : wallet[n] -= nts[n]); notes.forEach(n => document.getElementById(`${prefix}-${n}`).value = ''); document.getElementById(`count-${prefix}`).innerText = '০'; }
         notes.forEach(n => tempWallet[n] = wallet[n]);
         history.unshift({ id: Date.now(), date, type, desc, amount: total, denominations: nts });
         updateUI(); renderHistory(); checkOpLock(); alert("সংরক্ষিত!");
     }
-
     function checkOpLock() {
         const btn = document.getElementById('btn-save-op'); const badge = document.getElementById('op-lock-msg'); const unlock = document.getElementById('op-unlock-area'); const inputs = document.querySelectorAll('#page-1 input');
         if(isOpLocked) { inputs.forEach(i => i.disabled = true); btn.disabled = true; badge.style.display = 'block'; unlock.style.display = 'block';
@@ -245,9 +198,7 @@
             if(opItem) { document.getElementById('date-op').value = opItem.date; document.getElementById('desc-op').value = opItem.desc; notes.forEach(n => document.getElementById(`op-${n}`).value = opItem.denominations[n] || 0); document.getElementById('count-op').innerText = opItem.amount.toLocaleString(); }
         } else { inputs.forEach(i => i.disabled = false); btn.disabled = false; badge.style.display = 'none'; unlock.style.display = 'none'; }
     }
-    
     function unlockOpening() { if(confirm("ওপেনিং ব্যালেন্স পরিবর্তন করতে চান?")) { isOpLocked = false; localStorage.setItem('cash_v22_opLocked', false); checkOpLock(); } }
-    
     function renderHistory() {
         let h = ''; history.forEach(i => {
             let clr = i.type === 'expense' ? 'red' : 'green';
@@ -255,24 +206,17 @@
         });
         document.getElementById('history-list').innerHTML = h || "তথ্য নেই।";
     }
-
     function exportToExcelRange() {
-        let start = document.getElementById('exp-start').value;
-        let end = document.getElementById('exp-end').value;
+        let start = document.getElementById('exp-start').value; let end = document.getElementById('exp-end').value;
         const pMap = { 'opening': 1, 'income': 2, 'expense': 3 };
-        let sorted = [...history].sort((a,b) => {
-            if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
-            if (pMap[a.type] !== pMap[b.type]) return pMap[a.type] - pMap[b.type];
-            return a.id - b.id; 
-        });
-        let csv = "\ufeffতারিখ,বিবরণ,জما,খরচ,স্থিতি\n";
+        let sorted = [...history].sort((a,b) => { if (a.date !== b.date) return new Date(a.date) - new Date(b.date); if (pMap[a.type] !== pMap[b.type]) return pMap[a.type] - pMap[b.type]; return a.id - b.id; });
+        let csv = "\ufeffতারিখ,বিবরণ,জমা,খরচ,স্থিতি\n";
         let bal = 0, bf = 0; let filtered = [];
         sorted.forEach(i => { let amt = (i.type === 'expense' ? -i.amount : i.amount); if (i.date < start) bf += amt; else if (i.date >= start && i.date <= end) filtered.push(i); });
         bal = bf; csv += `${start},Bring Forward (B/F),${bf >= 0 ? bf : 0},${bf < 0 ? Math.abs(bf) : 0},${bal}\n`;
         filtered.forEach(i => { let inc = i.type !== 'expense' ? i.amount : 0; let exp = i.type === 'expense' ? i.amount : 0; bal += (inc - exp); csv += `${i.date},${i.desc},${inc},${exp},${bal}\n`; });
         let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = `Relief_Cashier_Report_${start}_to_${end}.csv`; a.click();
     }
-
     function deleteHistory(id) {
         if(confirm("ডিলিট করবেন?")) {
             let item = history.find(i => i.id === id); if(item.type === 'opening') { isOpLocked = false; localStorage.setItem('cash_v22_opLocked', false); }
@@ -280,7 +224,6 @@
             history = history.filter(i => i.id !== id); updateUI(); renderHistory(); checkOpLock();
         }
     }
-
     let currentEditId = null;
     function openEditModal(id) {
         currentEditId = id; let item = history.find(i => i.id === id);
@@ -302,22 +245,11 @@
     function exportBackup() { let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({wallet, history, isOpLocked})])); a.download = 'Relief_Cashier_Backup.json'; a.click(); }
     function importBackup(e) { let r = new FileReader(); r.onload = (ev) => { try { let d = JSON.parse(ev.target.result); wallet=d.wallet; history=d.history; isOpLocked=d.isOpLocked||false; localStorage.setItem('cash_v22_opLocked', isOpLocked); updateUI(); renderHistory(); location.reload(); } catch(err) { alert("ভুল ফাইল!"); } }; r.readAsText(e.target.files[0]); }
     function doubleConfirmReset() { if(confirm("সব মুছবেন?") && confirm("নিশ্চিত?")) { localStorage.clear(); location.reload(); } }
-    
     init();
 
-    // --- AUTOMATIC OFFLINE SERVICE WORKER ---
+    // Standard Service Worker Registration
     if ('serviceWorker' in navigator) {
-        const swCode = `
-            const CACHE_NAME = 'relief-cashier-v3.2.4';
-            self.addEventListener('install', e => {
-                e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll([location.href])));
-            });
-            self.addEventListener('fetch', e => {
-                e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-            });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log(err));
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log(err));
     }
 </script>
 </body>
