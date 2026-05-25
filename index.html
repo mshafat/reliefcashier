@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief Cashier - v3.2.6 (Installable)</title>
+    <title>Relief Cashier - v3.2.7 (Smart Restore)</title>
     
+    <!-- PWA Install & Icon Tags -->
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/icon.png">
     <link rel="apple-touch-icon" href="/icon.png">
@@ -187,7 +188,7 @@
     function saveAdjustment() { notes.forEach(n => wallet[n] = tempWallet[n]); updateUI(); alert("সমন্বয় সেভ হয়েছে!"); }
     function confirmAndSave(type) {
         let total = 0; let nts = {}; let prefix = (type === 'opening') ? 'op' : (type === 'income' ? 'in' : 'ex');
-        let date = document.getElementById Levant || `date-${prefix}`).value;
+        let date = document.getElementById(`date-${prefix}`).value;
         let desc = document.getElementById(`desc-${prefix === 'op' ? 'op' : (prefix === 'in' ? 'in' : 'ex')}`).value || (type === 'expense' ? 'খরচ' : 'লেনদেন');
         notes.forEach(n => { let v = parseInt(document.getElementById(`${prefix}-${n}`).value) || 0; total += (n * v); nts[n] = v; });
         if(total === 0) return alert("পরিমাণ লিখুন!");
@@ -195,7 +196,7 @@
         else { notes.forEach(n => type === 'income' ? wallet[n] += nts[n] : wallet[n] -= nts[n]); notes.forEach(n => document.getElementById(`${prefix}-${n}`).value = ''); document.getElementById(`count-${prefix}`).innerText = '০'; }
         notes.forEach(n => tempWallet[n] = wallet[n]);
         history.unshift({ id: Date.now(), date, type, desc, amount: total, denominations: nts });
-        updateUI(); renderHistory(); checkOpLock(); alert("সংরক্ষিত!");
+        updateUI(); renderHistory(); checkOpLock(); alert("সংরक्षित!");
     }
     function checkOpLock() {
         const btn = document.getElementById('btn-save-op'); const badge = document.getElementById('op-lock-msg'); const unlock = document.getElementById('op-unlock-area'); const inputs = document.querySelectorAll('#page-1 input');
@@ -249,7 +250,40 @@
     }
     function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
     function exportBackup() { let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({wallet, history, isOpLocked})])); a.download = 'Relief_Cashier_Backup.json'; a.click(); }
-    function importBackup(e) { let r = new FileReader(); r.onload = (ev) => { try { let d = JSON.parse(ev.target.result); wallet=d.wallet; history=d.history; isOpLocked=d.isOpLocked||false; localStorage.setItem('cash_v22_opLocked', isOpLocked); updateUI(); renderHistory(); location.reload(); } catch(err) { alert("ভুল ফাইল!"); } }; r.readAsText(e.target.files[0]); }
+    
+    // SMART IMPORT LOGIC (v3.2.7)
+    function importBackup(e) { 
+        let r = new FileReader(); 
+        r.onload = (ev) => { 
+            try { 
+                let d = JSON.parse(ev.target.result); 
+                if(!d.wallet || !d.history) {
+                    throw new Error("Invalid structure");
+                }
+                wallet = d.wallet; 
+                history = d.history; 
+                
+                // পুরোনো ব্যাকআপ ফাইলের জন্য অটো-লক ডিটেকশন লজিক
+                if(d.isOpLocked !== undefined) {
+                    isOpLocked = d.isOpLocked;
+                } else {
+                    // যদি ফাইলে লক ডাটা না থাকে, তবে ইতিহাসে ওপেনিং আছে কিনা চেক করবে
+                    isOpLocked = history.some(i => i.type === 'opening');
+                }
+                
+                localStorage.setItem('cash_v22_wallet', JSON.stringify(wallet));
+                localStorage.setItem('cash_v22_history', JSON.stringify(history));
+                localStorage.setItem('cash_v22_opLocked', isOpLocked); 
+                
+                alert("সাফল্যের সাথে পুরোনো সব ডাটা রিকভার করা হয়েছে!"); 
+                location.reload(); 
+            } catch(err) { 
+                alert("দুঃখিত, ফাইলটি সঠিক ব্যাকআপ ফাইল নয় অথবা ফাইলটি ক্ষতিগ্রস্ত!"); 
+            } 
+        }; 
+        r.readAsText(e.target.files[0]); 
+    }
+    
     function doubleConfirmReset() { if(confirm("সব মুছবেন?") && confirm("নিশ্চিত?")) { localStorage.clear(); location.reload(); } }
     init();
 
