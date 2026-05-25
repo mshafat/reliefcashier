@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief Cashier - v3.2.7 (Smart Restore)</title>
+    <title>Relief Cashier - v3.2.8 (Fixed Strings & Named Backup)</title>
     
     <!-- PWA Install & Icon Tags -->
     <link rel="manifest" href="/manifest.json">
@@ -196,7 +196,7 @@
         else { notes.forEach(n => type === 'income' ? wallet[n] += nts[n] : wallet[n] -= nts[n]); notes.forEach(n => document.getElementById(`${prefix}-${n}`).value = ''); document.getElementById(`count-${prefix}`).innerText = '০'; }
         notes.forEach(n => tempWallet[n] = wallet[n]);
         history.unshift({ id: Date.now(), date, type, desc, amount: total, denominations: nts });
-        updateUI(); renderHistory(); checkOpLock(); alert("সংরक्षित!");
+        updateUI(); renderHistory(); checkOpLock(); alert("সংরক্ষিত!");
     }
     function checkOpLock() {
         const btn = document.getElementById('btn-save-op'); const badge = document.getElementById('op-lock-msg'); const unlock = document.getElementById('op-unlock-area'); const inputs = document.querySelectorAll('#page-1 input');
@@ -249,9 +249,25 @@
         updateUI(); closeModal(); renderHistory(); checkOpLock();
     }
     function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
-    function exportBackup() { let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({wallet, history, isOpLocked})])); a.download = 'Relief_Cashier_Backup.json'; a.click(); }
     
-    // SMART IMPORT LOGIC (v3.2.7)
+    // EXPORT BACKUP WITH TIMESTAMPS
+    function exportBackup() { 
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let day = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        let timestamp = `${year}-${month}-${day}_${hours}-${minutes}`;
+        let filename = `Relief_Cashier_Backup_${timestamp}.json`;
+
+        let a = document.createElement("a"); 
+        a.href = URL.createObjectURL(new Blob([JSON.stringify({wallet, history, isOpLocked})])); 
+        a.download = filename; 
+        a.click(); 
+    }
+    
     function importBackup(e) { 
         let r = new FileReader(); 
         r.onload = (ev) => { 
@@ -263,11 +279,9 @@
                 wallet = d.wallet; 
                 history = d.history; 
                 
-                // পুরোনো ব্যাকআপ ফাইলের জন্য অটো-লক ডিটেকশন লজিক
                 if(d.isOpLocked !== undefined) {
                     isOpLocked = d.isOpLocked;
                 } else {
-                    // যদি ফাইলে লক ডাটা না থাকে, তবে ইতিহাসে ওপেনিং আছে কিনা চেক করবে
                     isOpLocked = history.some(i => i.type === 'opening');
                 }
                 
