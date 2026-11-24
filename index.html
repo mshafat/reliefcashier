@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief Cashier - v3.3.0 (Stable)</title>
+    <title>Relief Cashier - v3.3.1 (Stable)</title>
     
     <!-- PWA Install & Icon Tags -->
     <link rel="manifest" href="/manifest.json">
@@ -33,6 +33,8 @@
         input.note-input, input[type="number"], input[type="date"], .desc-input { width: 140px; padding: 8px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none; }
         input:focus { border-color: #303f9f; box-shadow: 0 0 5px rgba(48,63,159,0.2); }
         input:disabled { background: #e0e0e0; cursor: not-allowed; color: #757575; }
+        input.empty-note { background: #e0e0e0; color: #616161; border-color: #bdbdbd; }
+        input.empty-note:focus { background: #ffffff; color: #000000; border-color: #303f9f; }
         .live-counter { background: #fff9c4; padding: 10px; text-align: center; font-weight: bold; color: #333; border: 1px dashed #fbc02d; border-radius: 8px; margin-top: 10px; font-size: 16px; }
         .action-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .action-btn:disabled { background: #bdc3c7 !important; cursor: not-allowed; opacity: 0.6; }
@@ -50,7 +52,7 @@
         .modal-content { background:white; padding:20px; border-radius:10px; width:90%; max-width:400px; max-height:80vh; overflow-y:auto; }
         .lock-badge { display: none; background: #e8f5e9; color: #2e7d32; padding: 5px; border-radius: 5px; font-size: 12px; margin-bottom: 10px; text-align: center; border: 1px solid #2e7d32; }
 
-        /* প্রিন্ট করার জন্য ফিক্সড সিএসএস মিডিয়া কোয়েরি (ফাঁকা পাতা রোধে) */
+        /* প্রিন্ট করার জন্য ফিক্সড সিএসএস মিডিয়া কোয়েরি */
         #print-area { display: none; }
         @media print {
             html, body {
@@ -206,21 +208,19 @@
             if(document.getElementById(`adj-total-${n}`)) document.getElementById(`adj-total-${n}`).innerText = (n * count).toLocaleString();
             let inp = document.getElementById(`adj-input-${n}`); if(inp && document.activeElement !== inp) inp.value = count;
             
-            // নতুন ফিচার: রিপোর্টে নোট না থাকলে (0 হলে) ব্যয় অংশে সেই নোট ডিজেবল রাখা
+            // আপডেট v3.3.1: বক্স উন্মুক্ত থাকবে, তবে নোট ০ হলে ডিজেবলের মতো হালকা ধূসর কালার দেখাবে
             let exInp = document.getElementById(`ex-${n}`);
             if(exInp) {
                 let availableNote = wallet[n] || 0;
                 if(availableNote <= 0) {
-                    exInp.disabled = true;
-                    exInp.value = '';
-                    exInp.placeholder = 'নেই';
+                    exInp.classList.add('empty-note');
+                    exInp.placeholder = '০ টি আছে';
                 } else {
-                    exInp.disabled = false;
+                    exInp.classList.remove('empty-note');
                     exInp.placeholder = '0';
                 }
             }
         });
-        calcLive('ex'); // ব্যয় অংশের লাইভ কাউন্টার আপডেট রাখা
 
         document.getElementById('disp-total').innerText = physicalBal.toLocaleString() + ' ৳';
         const diff = Math.round((logicalBal - physicalBal) * 100) / 100;
@@ -270,7 +270,7 @@
         let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = `Relief_Cashier_Report_${start}_to_${end}.csv`; a.click();
     }
     
-    // ডাইনামিক পিডিএফ রিপোর্ট জেনারেশন ফাংশন (v3.3.0)
+    // ডাইনামিক পিডিএফ রিপোর্ট জেনারেশন ফাংশন (v3.3.1)
     function exportToPDFRange() {
         let start = document.getElementById('exp-start').value;
         let end = document.getElementById('exp-end').value;
