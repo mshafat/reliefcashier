@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief Cashier - v3.2.9 (PDF Report Enabled)</title>
+    <title>Relief Cashier - v3.3.0 (Stable)</title>
     
+    <!-- PWA Install & Icon Tags -->
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/icon.png">
     <link rel="apple-touch-icon" href="/icon.png">
@@ -49,17 +50,30 @@
         .modal-content { background:white; padding:20px; border-radius:10px; width:90%; max-width:400px; max-height:80vh; overflow-y:auto; }
         .lock-badge { display: none; background: #e8f5e9; color: #2e7d32; padding: 5px; border-radius: 5px; font-size: 12px; margin-bottom: 10px; text-align: center; border: 1px solid #2e7d32; }
 
-        /* প্রিন্ট করার জন্য ডেডিকেটেড সিএসএস মিডিয়া কোয়েরি */
-        @media print {
-            body { background: white; color: black; padding: 0; display: block; }
-            .app-box { box-shadow: none; max-width: 100%; width: 100%; border-radius: 0; overflow: visible; }
-            .header, .nav-tabs, .action-btn, .range-box, style, script, input[type="radio"], #edit-modal, .lock-badge, #op-unlock-area, div[style*="justify-content:space-between"] { display: none !important; }
-            .page { display: none !important; }
-            #page-4 { display: block !important; max-height: none !important; overflow: visible !important; padding: 0; }
-            #page-4 > h3, #page-4 > table, #page-4 > .range-box { display: none !important; }
-            #print-area { display: block !important; }
-        }
+        /* প্রিন্ট করার জন্য ফিক্সড সিএসএস মিডিয়া কোয়েরি (ফাঁকা পাতা রোধে) */
         #print-area { display: none; }
+        @media print {
+            html, body {
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                color: black !important;
+                display: block !important;
+                overflow: visible !important;
+            }
+            .app-box, #edit-modal {
+                display: none !important;
+            }
+            #print-area {
+                display: block !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+        }
     </style>
 </head>
 <body>
@@ -73,6 +87,7 @@
     </div>
 </div>
 
+<!-- পিডিএফ প্রিন্টের জন্য লেআউট সেকশন -->
 <div id="print-area"></div>
 
 <div class="app-box">
@@ -190,7 +205,23 @@
             let count = tempWallet[n]; physicalBal += (n * count);
             if(document.getElementById(`adj-total-${n}`)) document.getElementById(`adj-total-${n}`).innerText = (n * count).toLocaleString();
             let inp = document.getElementById(`adj-input-${n}`); if(inp && document.activeElement !== inp) inp.value = count;
+            
+            // নতুন ফিচার: রিপোর্টে নোট না থাকলে (0 হলে) ব্যয় অংশে সেই নোট ডিজেবল রাখা
+            let exInp = document.getElementById(`ex-${n}`);
+            if(exInp) {
+                let availableNote = wallet[n] || 0;
+                if(availableNote <= 0) {
+                    exInp.disabled = true;
+                    exInp.value = '';
+                    exInp.placeholder = 'নেই';
+                } else {
+                    exInp.disabled = false;
+                    exInp.placeholder = '0';
+                }
+            }
         });
+        calcLive('ex'); // ব্যয় অংশের লাইভ কাউন্টার আপডেট রাখা
+
         document.getElementById('disp-total').innerText = physicalBal.toLocaleString() + ' ৳';
         const diff = Math.round((logicalBal - physicalBal) * 100) / 100;
         const msg = document.getElementById('diff-msg'); const header = document.getElementById('main-header'); const saveAdjBtn = document.getElementById('btn-save-adj');
@@ -239,7 +270,7 @@
         let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = `Relief_Cashier_Report_${start}_to_${end}.csv`; a.click();
     }
     
-    // ডাইনামিক পিডিএফ রিপোর্ট জেনারেশন ফাংশন (v3.2.9)
+    // ডাইনামিক পিডিএফ রিপোর্ট জেনারেশন ফাংশন (v3.3.0)
     function exportToPDFRange() {
         let start = document.getElementById('exp-start').value;
         let end = document.getElementById('exp-end').value;
@@ -261,16 +292,15 @@
         
         bal = bf;
         
-        // পিডিএফ প্রিন্ট লেআউট তৈরি
         let html = `
-            <div style="padding: 20px; font-family: 'Segoe UI', Arial, sans-serif;">
-                <div style="text-align: center; border-bottom: 2px solid #1a237e; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="padding: 15px; font-family: 'Segoe UI', Arial, sans-serif;">
+                <div style="text-align: center; border-bottom: 2px solid #1a237e; padding-bottom: 10px; margin-bottom: 15px;">
                     <h2 style="margin: 0; color: #1a237e;">Relief Cashier - ক্যাশ রিপোর্ট</h2>
                     <p style="margin: 5px 0 0 0; font-size: 14px; color: #555;">সময়কাল: <b>${start}</b> হতে <b>${end}</b></p>
                 </div>
                 
                 <h4 style="color: #1a237e; margin-bottom: 8px;">১. লেনদেন বিবরণী (Transactions)</h4>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 30px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
                     <thead>
                         <tr style="background: #f5f5f5;">
                             <th style="border: 1px solid #ddd; padding: 8px;">তারিখ</th>
@@ -309,16 +339,17 @@
                     </tbody>
                 </table>
                 
-                <h4 style="color: #1a237e; margin-bottom: 8px;">২. সমাপনী ক্যাশ ডেনোমিনেশন (Closing Note Summary)</h4>
-                <table style="width: 100%; max-width: 400px; border-collapse: collapse; font-size: 12px;">
-                    <thead>
-                        <tr style="background: #f5f5f5;">
-                            <th style="border: 1px solid #ddd; padding: 6px;">নোটের মান</th>
-                            <th style="border: 1px solid #ddd; padding: 6px;">সংখ্যা (টি)</th>
-                            <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">মোট পরিমাণ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div style="page-break-inside: avoid;">
+                    <h4 style="color: #1a237e; margin-bottom: 8px;">২. সমাপনী ক্যাশ ডেনোমিনেশন (Closing Note Summary)</h4>
+                    <table style="width: 100%; max-width: 400px; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr style="background: #f5f5f5;">
+                                <th style="border: 1px solid #ddd; padding: 6px;">নোটের মান</th>
+                                <th style="border: 1px solid #ddd; padding: 6px;">সংখ্যা (টি)</th>
+                                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">মোট পরিমাণ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
         `;
         
         let grandTotal = 0;
@@ -336,20 +367,20 @@
         });
         
         html += `
-                        <tr style="background: #e8eaf6; font-weight: bold;">
-                            <td colspan="2" style="border: 1px solid #ddd; padding: 8px; text-align: center;">সর্বমোট সমাপনী ক্যাশ (হাতে নগদ)</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: #1a237e; font-size: 14px;">${grandTotal.toLocaleString()} ৳</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <div style="margin-top: 50px; font-size: 11px; color: #777; text-align: right;">
-                    রিপোর্ট জেনারেট হওয়ার তারিখ: ${new Date().toLocaleDateString('bn-BD')} | Relief Cashier PWA
+                            <tr style="background: #e8eaf6; font-weight: bold;">
+                                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; text-align: center;">সর্বমোট সমাপনী ক্যাশ (হাতে নগদ)</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: #1a237e; font-size: 14px;">${grandTotal.toLocaleString()} ৳</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 25px; font-size: 11px; color: #777; text-align: right;">
+                        রিপোর্ট জেনারেট হওয়ার তারিখ: ${new Date().toLocaleDateString('bn-BD')} | Relief Cashier PWA
+                    </div>
                 </div>
             </div>
         `;
         
-        // প্রিন্ট এরিয়াতে ডাটা পুশ করে উইন্ডো প্রিন্ট ট্রিগার করা
         document.getElementById('print-area').innerHTML = html;
         window.print();
     }
