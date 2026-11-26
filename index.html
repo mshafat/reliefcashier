@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief Cashier - v3.3.1 (Stable)</title>
+    <title>Relief Cashier - v3.3.2 (Stable)</title>
     
     <!-- PWA Install & Icon Tags -->
     <link rel="manifest" href="/manifest.json">
@@ -208,7 +208,6 @@
             if(document.getElementById(`adj-total-${n}`)) document.getElementById(`adj-total-${n}`).innerText = (n * count).toLocaleString();
             let inp = document.getElementById(`adj-input-${n}`); if(inp && document.activeElement !== inp) inp.value = count;
             
-            // আপডেট v3.3.1: বক্স উন্মুক্ত থাকবে, তবে নোট ০ হলে ডিজেবলের মতো হালকা ধূসর কালার দেখাবে
             let exInp = document.getElementById(`ex-${n}`);
             if(exInp) {
                 let availableNote = wallet[n] || 0;
@@ -270,7 +269,7 @@
         let a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = `Relief_Cashier_Report_${start}_to_${end}.csv`; a.click();
     }
     
-    // ডাইনামিক পিডিএফ রিপোর্ট জেনারেশন ফাংশন (v3.3.1)
+    // ডাইনামিক পিডিএফ রিপোর্ট জেনারেশন ফাংশন (v3.3.2 - জমা ও খরচ বোল্ড)
     function exportToPDFRange() {
         let start = document.getElementById('exp-start').value;
         let end = document.getElementById('exp-end').value;
@@ -314,8 +313,8 @@
                         <tr>
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${start}</td>
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">Bring Forward (B/F)</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: green;">${bf >= 0 ? bf.toLocaleString() : 0} ৳</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: red;">${bf < 0 ? Math.abs(bf).toLocaleString() : 0} ৳</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: green; font-weight: bold;">${bf >= 0 ? bf.toLocaleString() : 0} ৳</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: red; font-weight: bold;">${bf < 0 ? Math.abs(bf).toLocaleString() : 0} ৳</td>
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: bold;">${bal.toLocaleString()} ৳</td>
                         </tr>
         `;
@@ -328,8 +327,8 @@
                 <tr>
                     <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${i.date}</td>
                     <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${i.desc}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: green;">${inc > 0 ? inc.toLocaleString() + ' ৳' : '-'}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: red;">${exp > 0 ? exp.toLocaleString() + ' ৳' : '-'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: green; font-weight: bold;">${inc > 0 ? inc.toLocaleString() + ' ৳' : '-'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: red; font-weight: bold;">${exp > 0 ? exp.toLocaleString() + ' ৳' : '-'}</td>
                     <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: bold;">${bal.toLocaleString()} ৳</td>
                 </tr>
             `;
